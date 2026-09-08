@@ -42,8 +42,15 @@ async function api(path, options = {}) {
 function updateAuthUI() {
     const area = document.getElementById('auth-area');
     if (currentUser) {
+        const roleBadge = currentUser.role === 'admin'
+            ? '<span class="badge bg-danger ms-1">admin</span>'
+            : '<span class="badge bg-secondary ms-1">colonist</span>';
+        const adminLink = currentUser.role === 'admin'
+            ? '<li class="nav-item"><a class="nav-link" href="#" onclick="showPage(\'admin\')">Админ</a></li>'
+            : '';
         area.innerHTML = `
-            <li class="nav-item"><span class="nav-link text-warning">${currentUser.username}</span></li>
+            ${adminLink}
+            <li class="nav-item"><span class="nav-link text-warning">${currentUser.username} ${roleBadge}</span></li>
             <li class="nav-item"><a class="nav-link" href="#" onclick="logout()">Выход</a></li>
         `;
     } else {
@@ -93,6 +100,20 @@ async function setLocale(lang) {
         localeStrings = data.strings || {};
         applyLocaleStrings();
         toast(`Локаль: ${data.message}`, data.status === 'partial' ? 'warning' : 'success');
+
+        // INTENTIONAL UI BUG: after loading partial Martian strings, UI also calls
+        // the crash endpoint and surfaces HTTP 500 to the user (second independent defect).
+        if ((data.locale || lang).toLowerCase() === 'mars') {
+            try {
+                const crash = await fetch(API + '/locale/mars/crash');
+                if (!crash.ok) {
+                    const errBody = await crash.json().catch(() => ({}));
+                    toast(`Ошибка локали (${crash.status}): ${errBody.detail || crash.statusText}`, 'error');
+                }
+            } catch (e2) {
+                toast('Сетевая ошибка crash-локали: ' + e2.message, 'error');
+            }
+        }
     } catch (e) {
         toast('Сетевая ошибка при смене локали: ' + e.message, 'error');
     }
@@ -157,6 +178,7 @@ function showPage(page, param) {
         case 'report-bug': renderReportBug(app); break;
         case 'guide': renderGuide(app); break;
         case 'feedback': renderFeedback(app); break;
+        case 'admin': renderAdmin(app); break;
         case 'login': renderLogin(app); break;
         case 'register': renderRegister(app); break;
         default: renderHome(app);
@@ -581,7 +603,7 @@ async function loadBugs() {
                         <h5 class="mt-2 mb-1">#${r.id} ${escapeHtml(r.title)}</h5>
                         <div class="small text-muted">${r.reporter || 'Аноним'} · ${new Date(r.created_at).toLocaleString('ru')} · ${r.status}</div>
                     </div>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBug(${r.id})" title="Удалить">×</button>
+                    ${currentUser && currentUser.role === 'admin' ? `<button class="btn btn-sm btn-outline-danger" onclick="deleteBug(${r.id})" title="Удалить (admin)">×</button>` : ''}
                 </div>
                 <div class="row mt-3 small">
                     <div class="col-md-4"><strong>Шаги:</strong><pre class="mb-0 text-wrap">${escapeHtml(r.steps)}</pre></div>
@@ -711,6 +733,54 @@ async function deleteBug(id) {
         loadBugs();
     } catch (e) {
         toast(e.message, 'error');
+    }
+}
+
+// ==================== ADMIN ====================
+async function renderAdmin(app) {
+    if (!currentUser || currentUser.role !== 'admin') {
+        app.innerHTML = `<div class="alert alert-warning">Раздел только для роли <strong>admin</strong>. Войдите как <code>admin / admin123</code>.</div>`;
+        return;
+    }
+    app.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-warning"></div></div>`;
+    try {
+        const [users, orders, feedback] = await Promise.all([
+            api('/admin/users'),
+            api('/admin/orders'),
+            api('/feedback'),
+        ]);
+        app.innerHTML = `
+            <h2 class="mb-3">Панель администратора</h2>
+            <p class="text-muted">Доступно только роли <span class="badge bg-danger">admin</span>. Colonist получит 403 на этих API.</p>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="card-mars p-3 h-100">
+                        <h5>Пользователи (${users.length})</h5>
+                        <ul class="small mb-0 list-unstyled">
+                            ${users.map(u => `<li><strong>${u.username}</strong> — ${u.role} · ${u.colony || '—'}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card-mars p-3 h-100">
+                        <h5>Все заказы (${orders.length})</h5>
+                        <ul class="small mb-0 list-unstyled">
+                            ${orders.slice(0, 15).map(o => `<li>#${o.id} user=${o.user_id} · ${o.total_sols} Ṡ · ${o.status}</li>`).join('') || '<li class="text-muted">Пусто</li>'}
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card-mars p-3 h-100">
+                        <h5>Обратная связь (${feedback.length})</h5>
+                        <ul class="small mb-0 list-unstyled">
+                            ${feedback.slice(0, 15).map(f => `<li>#${f.id} ${escapeHtml(f.subject)} · ${f.category}</li>`).join('') || '<li class="text-muted">Пусто</li>'}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        `;
+    } catch (e) {
+        app.innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
     }
 }
 

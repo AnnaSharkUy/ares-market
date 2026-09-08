@@ -497,8 +497,12 @@ def get_bug_report(report_id: int, db: Session = Depends(get_db)):
 
 
 @app.delete("/api/bugreports/{report_id}", status_code=204, tags=["Bug Reports"])
-def delete_bug_report(report_id: int, db: Session = Depends(get_db)):
-    # BUG: no auth — anyone can delete any report (for training security awareness)
+def delete_bug_report(
+    report_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.require_roles("admin")),
+):
+    """Only admin may delete bug reports. Colonist receives 403."""
     r = db.query(models.BugReport).filter(models.BugReport.id == report_id).first()
     if not r:
         raise HTTPException(status_code=404, detail="Bug report not found")
@@ -584,10 +588,49 @@ async def create_feedback(
 @app.get("/api/feedback", response_model=List[schemas.FeedbackOut], tags=["Feedback"])
 def list_feedback(
     db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_active_user),
+    current_user: models.User = Depends(auth.require_roles("admin")),
 ):
-    # Only admin should see all — BUG: any authenticated user can list all feedback
+    """Admin-only: full feedback inbox. Colonist → 403."""
     return db.query(models.Feedback).order_by(models.Feedback.created_at.desc()).all()
+
+
+@app.get("/api/admin/orders", tags=["Admin"])
+def admin_all_orders(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.require_roles("admin")),
+):
+    """Admin can list orders of all colonists."""
+    orders = db.query(models.Order).order_by(models.Order.created_at.desc()).limit(100).all()
+    return [
+        {
+            "id": o.id,
+            "user_id": o.user_id,
+            "total_sols": o.total_sols,
+            "status": o.status,
+            "delivery_colony": o.delivery_colony,
+            "created_at": o.created_at,
+        }
+        for o in orders
+    ]
+
+
+@app.get("/api/admin/users", tags=["Admin"])
+def admin_list_users(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.require_roles("admin")),
+):
+    users = db.query(models.User).all()
+    return [
+        {
+            "id": u.id,
+            "username": u.username,
+            "email": u.email,
+            "role": u.role,
+            "colony": u.colony,
+            "is_active": u.is_active,
+        }
+        for u in users
+    ]
 
 
 @app.get("/api/stats", tags=["Misc"])
