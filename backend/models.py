@@ -106,3 +106,20 @@ class Review(Base):
 
     product = relationship("Product", back_populates="reviews")
     user = relationship("User", back_populates="reviews")
+
+
+class BugReport(Base):
+    """Студенты оформляют найденные дефекты прямо в приложении."""
+    __tablename__ = "bug_reports"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(200), nullable=False)
+    discipline = Column(String(80), default="Не указана")  # UI, API, SQL, Локализация...
+    steps = Column(Text, nullable=False)
+    expected = Column(Text, nullable=False)
+    actual = Column(Text, nullable=False)
+    severity = Column(String(20), default="medium")  # blocker, critical, major, minor, trivial
+    priority = Column(String(20), default="medium")  # high, medium, low
+    environment = Column(String(200), default="")
+    reporter = Column(String(80), default="Аноним")
+    status = Column(String(30), default="new")  # new, confirmed, fixed, rejected
+    created_at = Column(DateTime, default=datetime.utcnow)

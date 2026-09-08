@@ -52,28 +52,28 @@ def seed_data(db: Session):
     db.flush()
 
     products = [
-        # Life Support
-        models.Product(sku="OX-MK3-01", name="Кислородный баллон Mk.III", name_mars="Oxy-Canister Prime", brand="SolTech", description="Лёгкий композитный баллон на 48 часов автономной работы. Совместим со шлюзами Olympus City.", price_sols=245.0, price_credits=890.0, stock=42, category_id=1, image_emoji="🫁", rating=4.7, is_featured=True),
-        models.Product(sku="WR-FIL-02", name="Фильтр ресайклера воды", name_mars="Aqua-Sieve V2", brand="HeliumLabs", description="Сменный картридж для систем регенерации воды. Ресурс 90 сол.", price_sols=68.5, price_credits=250.0, stock=120, category_id=1, image_emoji="💧", rating=4.4),
-        models.Product(sku="CO2-SCR-03", name="Скруббер CO₂ портативный", name_mars="BreathClean Mini", brand="SolTech", description="Компактный модуль удаления углекислого газа для шлемов и кают.", price_sols=189.0, price_credits=690.0, stock=28, category_id=1, image_emoji="🌬️", rating=4.2),
+        # Life Support — names inspired by Olympus Market draft
+        models.Product(sku="OX-VD9-01", name="Кислородный баллон «Вдох-9»", name_mars="Oxy-Canister Prime", brand="SolTech", description="Компактный баллон на плечевом креплении. Хватает на полную рабочую смену снаружи купола. Индикатор давления виден даже в перчатках 3-го класса.", price_sols=149.9, price_credits=540.0, stock=34, category_id=1, image_emoji="🫁", rating=4.8, is_featured=True),
+        models.Product(sku="WR-FIL-02", name="Фильтр ресайклера воды «Аква-Сито»", name_mars="Aqua-Sieve V2", brand="HeliumLabs", description="Сменный картридж для систем регенерации воды. Ресурс 90 сол.", price_sols=68.5, price_credits=250.0, stock=120, category_id=1, image_emoji="💧", rating=4.4),
+        models.Product(sku="CO2-SCR-03", name="Скруббер CO₂ «Дыхание-Мини»", name_mars="BreathClean Mini", brand="SolTech", description="Компактный модуль удаления углекислого газа для шлемов и кают.", price_sols=189.0, price_credits=690.0, stock=28, category_id=1, image_emoji="🌬️", rating=4.2),
+        models.Product(sku="SEAL-PRO-10", name="Ремонтный набор «Герметик-Про»", name_mars="LeakStop Foam", brand="RegolithWorks", description="Экстренная заделка микропроколов купола и скафандра. Держит герметичность не менее 72 часов.", price_sols=56.0, price_credits=200.0, stock=63, category_id=1, image_emoji="🧴", rating=4.6),
         # Construction
-        models.Product(sku="REG-BRK-100", name="Реголитовые кирпичи (100 шт)", name_mars="DustBrick Pack", brand="RegolithWorks", description="Прессованные блоки из марсианского реголита. Идеально для внутренних перегородок.", price_sols=95.0, price_credits=340.0, stock=500, category_id=2, image_emoji="🧱", rating=4.1, is_featured=True),
-        models.Product(sku="DOM-PAN-05", name="Панель купола (1×1 м)", name_mars="SkyShell Panel", brand="OlympusForge", description="Прозрачная радиационно-защищённая панель для жилых куполов.", price_sols=420.0, price_credits=1520.0, stock=35, category_id=2, image_emoji="🔲", rating=4.8),
-        models.Product(sku="SEAL-FOAM-07", name="Герметик аварийный", name_mars="LeakStop Foam", brand="RegolithWorks", description="Быстротвердеющая пена для герметизации трещин. Работает при −60 °C.", price_sols=42.0, price_credits=155.0, stock=200, category_id=2, image_emoji="🧴", rating=4.0),
+        models.Product(sku="REG-BRK-100", name="Реголитовые кирпичи «Пылеблок» (100 шт)", name_mars="DustBrick Pack", brand="RegolithWorks", description="Прессованные блоки из марсианского реголита. Идеально для внутренних перегородок.", price_sols=95.0, price_credits=340.0, stock=500, category_id=2, image_emoji="🧱", rating=4.1, is_featured=True),
+        models.Product(sku="DOM-PAN-05", name="Панель купола «Небощит» (1×1 м)", name_mars="SkyShell Panel", brand="OlympusForge", description="Прозрачная радиационно-защищённая панель для жилых куполов.", price_sols=420.0, price_credits=1520.0, stock=35, category_id=2, image_emoji="🔲", rating=4.8),
         # Food
-        models.Product(sku="SEED-TOM-M", name="Семена томатов (адаптированные)", name_mars="RedFruit Seeds", brand="Hydro-Feast", description="Генно-адаптированные семена томатов для марсианской гидропоники. Урожай за 45 сол.", price_sols=28.0, price_credits=100.0, stock=300, category_id=3, image_emoji="🍅", rating=4.6, is_featured=True),
-        models.Product(sku="RATION-ALG-12", name="Рацион из водорослей (12 порций)", name_mars="GreenBite Pack", brand="Hydro-Feast", description="Сублимированный питательный рацион на основе спирулины. 2200 ккал/день.", price_sols=55.0, price_credits=200.0, stock=180, category_id=3, image_emoji="🥗", rating=3.9),
-        models.Product(sku="YEAST-CULT-01", name="Культура дрожжей для ферментации", name_mars="Ferment-Core", brand="Hydro-Feast", description="Стартовая культура для производства белка и напитков на базе.", price_sols=35.0, price_credits=125.0, stock=90, category_id=3, image_emoji="🧫", rating=4.3),
+        models.Product(sku="SEED-TOM-M", name="Терраформ-семена «Первый лист»", name_mars="RedFruit Seeds", brand="Hydro-Feast", description="Смесь семян, адаптированных для теплиц с пониженным давлением: салат, редис, шпинат. Всхожесть подтверждена на всех куполах колонии.", price_sols=22.9, price_credits=85.0, stock=140, category_id=3, image_emoji="🌱", rating=4.7, is_featured=True),
+        models.Product(sku="RATION-ALG-12", name="Рацион из водорослей «Зелёный укус» (12 порций)", name_mars="GreenBite Pack", brand="Hydro-Feast", description="Сублимированный питательный рацион на основе спирулины. 2200 ккал/день.", price_sols=55.0, price_credits=200.0, stock=180, category_id=3, image_emoji="🥗", rating=3.9),
         # Gear
-        models.Product(sku="BOOT-RAD-42", name="Ботинки с радиационной защитой", name_mars="DustWalkers Pro", brand="DustGuard", description="Усиленная подошва, защита от пыли и ионизирующего излучения. Размеры 38–46.", price_sols=310.0, price_credits=1120.0, stock=55, category_id=4, image_emoji="👢", rating=4.5, is_featured=True),
-        models.Product(sku="SUIT-LIGHT-09", name="Лёгкий скафандр (дневной)", name_mars="SunShell Lite", brand="DustGuard", description="Упрощённый костюм для работы внутри куполов и коротких выходов.", price_sols=890.0, price_credits=3200.0, stock=18, category_id=4, image_emoji="🧑‍🚀", rating=4.7),
-        models.Product(sku="GLOVE-DEX-03", name="Перчатки высокой ловкости", name_mars="FineGrip Gloves", brand="DustGuard", description="Тонкие, но прочные перчатки для работы с инструментами.", price_sols=75.0, price_credits=270.0, stock=110, category_id=4, image_emoji="🧤", rating=4.2),
+        models.Product(sku="SUIT-REG-09", name="Скафандр «Регол-Лайт»", name_mars="SunShell Lite", brand="DustGuard", description="Облегчённый скафандр для повседневных выходов: уборка солнечных панелей, мелкий ремонт, прогулки. Не предназначен для песчаных бурь категории 3+.", price_sols=2340.0, price_credits=8400.0, stock=12, category_id=4, image_emoji="🧑‍🚀", rating=4.5, is_featured=True),
+        models.Product(sku="BOOT-RAD-42", name="Ботинки «Пылеход» с радиационной защитой", name_mars="DustWalkers Pro", brand="DustGuard", description="Усиленная подошва, защита от пыли и ионизирующего излучения. Размеры 38–46.", price_sols=310.0, price_credits=1120.0, stock=55, category_id=4, image_emoji="👢", rating=4.5),
+        models.Product(sku="CAPE-DUST-05", name="Пылезащитная накидка «Барханка»", name_mars="DustCape", brand="DustGuard", description="Лёгкая накидка на скафандр из антистатической ткани. Не даёт мелкодисперсной пыли забивать сочленения после бурь.", price_sols=34.5, price_credits=125.0, stock=76, category_id=4, image_emoji="🧥", rating=4.1),
+        models.Product(sku="HELM-HOR-02", name="Шлем обзорный «Горизонт-2»", name_mars="Horizon Helm", brand="DustGuard", description="Расширенный угол обзора и антибликовое покрытие. Совместим со скафандрами «Регол».", price_sols=780.0, price_credits=2800.0, stock=9, category_id=4, image_emoji="⛑️", rating=4.3),
         # Energy
-        models.Product(sku="SOL-PANEL-MINI", name="Солнечная панель мини (50 Вт)", name_mars="SolPlate 50", brand="SolTech", description="Складная панель для зарядки оборудования и маяков.", price_sols=160.0, price_credits=580.0, stock=70, category_id=5, image_emoji="☀️", rating=4.4),
-        models.Product(sku="BATT-LI-S20", name="Аккумулятор Li-S 20 кВт·ч", name_mars="PowerCell 20", brand="SolTech", description="Лёгкий литий-серный аккумулятор для жилых модулей.", price_sols=1250.0, price_credits=4500.0, stock=12, category_id=5, image_emoji="🔋", rating=4.9, is_featured=True),
+        models.Product(sku="SOL-PANEL-MINI", name="Энергоблок «Сол-Заряд 400»", name_mars="SolPlate 400", brand="SolTech", description="Портативный накопитель энергии для модулей и роверов. Заряжается от солнечных панелей купола за один марсианский день.", price_sols=640.0, price_credits=2300.0, stock=21, category_id=5, image_emoji="🔋", rating=4.4, is_featured=True),
+        models.Product(sku="BATT-LI-S20", name="Аккумулятор Li-S «Силовой 20»", name_mars="PowerCell 20", brand="SolTech", description="Лёгкий литий-серный аккумулятор для жилых модулей.", price_sols=1250.0, price_credits=4500.0, stock=12, category_id=5, image_emoji="⚡", rating=4.9),
         # Comm
-        models.Product(sku="COMM-WRIST-01", name="Наручный комм-линк", name_mars="Phobos Band", brand="Phobos Link", description="Связь с орбитой и базой в радиусе 50 км. Голосовые и текстовые сообщения.", price_sols=195.0, price_credits=710.0, stock=85, category_id=6, image_emoji="⌚", rating=4.3),
-        models.Product(sku="BEACON-EM-02", name="Аварийный маяк", name_mars="SignalFlare X", brand="Phobos Link", description="Автоматический маяк с GPS-координатами и сигналом бедствия.", price_sols=88.0, price_credits=320.0, stock=60, category_id=6, image_emoji="🚨", rating=4.6),
+        models.Product(sku="COMM-WRIST-01", name="Наручный комм-линк «Фобос-Бэнд»", name_mars="Phobos Band", brand="Phobos Link", description="Связь с орбитой и базой в радиусе 50 км. Голосовые и текстовые сообщения.", price_sols=195.0, price_credits=710.0, stock=85, category_id=6, image_emoji="⌚", rating=4.3),
+        models.Product(sku="BEACON-EM-02", name="Аварийный маяк «Сигнал-Вспышка»", name_mars="SignalFlare X", brand="Phobos Link", description="Автоматический маяк с GPS-координатами и сигналом бедствия.", price_sols=88.0, price_credits=320.0, stock=60, category_id=6, image_emoji="🚨", rating=4.6),
     ]
     db.add_all(products)
 
@@ -207,7 +207,8 @@ def list_products(
         q = q.filter(models.Product.is_featured == True)
 
     if sort == "price_asc":
-        q = q.order_by(models.Product.price_sols.asc())
+        # INTENTIONAL BUG (B1): price_asc sorts DESC — same as Olympus Market draft
+        q = q.order_by(models.Product.price_sols.desc())
     elif sort == "price_desc":
         q = q.order_by(models.Product.price_sols.desc())
     elif sort == "rating":
@@ -402,6 +403,70 @@ def product_reviews(product_id: int, db: Session = Depends(get_db)):
     return db.query(models.Review).filter(models.Review.product_id == product_id).all()
 
 
+# ==================== BUG REPORTS (студенты оформляют находки здесь) ====================
+ALLOWED_SEVERITIES = {"blocker", "critical", "major", "minor", "trivial", "medium", "high", "low"}
+
+@app.post("/api/bugreports", response_model=schemas.BugReportOut, status_code=201, tags=["Bug Reports"])
+def create_bug_report(payload: schemas.BugReportCreate, db: Session = Depends(get_db)):
+    # BUG: severity silently normalized to "medium" if unknown — no 422
+    sev = payload.severity.lower() if payload.severity else "medium"
+    if sev not in ALLOWED_SEVERITIES:
+        sev = "medium"
+    report = models.BugReport(
+        title=payload.title,
+        discipline=payload.discipline or "Не указана",
+        steps=payload.steps,
+        expected=payload.expected,
+        actual=payload.actual,
+        severity=sev,
+        priority=(payload.priority or "medium").lower(),
+        environment=payload.environment or "",
+        reporter=payload.reporter or "Аноним",
+    )
+    db.add(report)
+    db.commit()
+    db.refresh(report)
+    return report
+
+
+@app.get("/api/bugreports", response_model=List[schemas.BugReportOut], tags=["Bug Reports"])
+def list_bug_reports(
+    discipline: Optional[str] = None,
+    severity: Optional[str] = None,
+    search: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    q = db.query(models.BugReport).order_by(models.BugReport.created_at.desc())
+    if discipline:
+        q = q.filter(models.BugReport.discipline == discipline)
+    if severity:
+        # BUG: case-sensitive severity filter
+        q = q.filter(models.BugReport.severity == severity)
+    if search:
+        # BUG: case-sensitive search only on title
+        q = q.filter(models.BugReport.title.contains(search))
+    return q.all()
+
+
+@app.get("/api/bugreports/{report_id}", response_model=schemas.BugReportOut, tags=["Bug Reports"])
+def get_bug_report(report_id: int, db: Session = Depends(get_db)):
+    r = db.query(models.BugReport).filter(models.BugReport.id == report_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Bug report not found")
+    return r
+
+
+@app.delete("/api/bugreports/{report_id}", status_code=204, tags=["Bug Reports"])
+def delete_bug_report(report_id: int, db: Session = Depends(get_db)):
+    # BUG: no auth — anyone can delete any report (for training security awareness)
+    r = db.query(models.BugReport).filter(models.BugReport.id == report_id).first()
+    if not r:
+        raise HTTPException(status_code=404, detail="Bug report not found")
+    db.delete(r)
+    db.commit()
+    return None
+
+
 # ==================== STATS / SEARCH HELPERS ====================
 @app.get("/api/stats", tags=["Misc"])
 def stats(db: Session = Depends(get_db)):
@@ -409,6 +474,7 @@ def stats(db: Session = Depends(get_db)):
         "products": db.query(models.Product).count(),
         "categories": db.query(models.Category).count(),
         "users": db.query(models.User).count(),
+        "bug_reports": db.query(models.BugReport).count(),
         "currency": "Sols (Ṡ)",
         "colony_network": ["Olympus City", "Valles Base", "Phobos Dock", "Hellas Outpost"],
     }

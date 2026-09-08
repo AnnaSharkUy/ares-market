@@ -106,6 +106,9 @@ function showPage(page, param) {
         case 'product': renderProduct(app, param); break;
         case 'cart': renderCart(app); break;
         case 'orders': renderOrders(app); break;
+        case 'bugs': renderBugs(app); break;
+        case 'report-bug': renderReportBug(app); break;
+        case 'guide': renderGuide(app); break;
         case 'login': renderLogin(app); break;
         case 'register': renderRegister(app); break;
         default: renderHome(app);
@@ -457,6 +460,295 @@ async function renderOrders(app) {
     } catch (e) {
         app.innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
     }
+}
+
+// ==================== BUG REPORTS ====================
+async function renderBugs(app) {
+    app.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <h2 class="mb-0">Баг-репорты</h2>
+            <button class="btn btn-mars" onclick="showPage('report-bug')">+ Оформить баг-репорт</button>
+        </div>
+        <p class="text-muted">Студенты оформляют найденные дефекты прямо здесь. Это основная практика стенда.</p>
+        <div class="filters-bar mb-3">
+            <div class="row g-2">
+                <div class="col-md-3">
+                    <select class="form-select form-select-sm" id="bug-discipline">
+                        <option value="">Все дисциплины</option>
+                        <option>UI</option>
+                        <option>API</option>
+                        <option>SQL / данные</option>
+                        <option>Локализация</option>
+                        <option>Валидация</option>
+                        <option>Безопасность</option>
+                        <option>Адаптив / кроссбраузерность</option>
+                        <option>Прочее</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select form-select-sm" id="bug-severity">
+                        <option value="">Любая severity</option>
+                        <option value="blocker">blocker</option>
+                        <option value="critical">critical</option>
+                        <option value="major">major</option>
+                        <option value="minor">minor</option>
+                        <option value="trivial">trivial</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <input type="text" class="form-control form-control-sm" id="bug-search" placeholder="Поиск по заголовку...">
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-mars btn-sm w-100" onclick="loadBugs()">Фильтр</button>
+                </div>
+            </div>
+        </div>
+        <div id="bugs-list"><div class="text-center py-4"><div class="spinner-border text-warning"></div></div></div>
+    `;
+    await loadBugs();
+}
+
+async function loadBugs() {
+    const d = document.getElementById('bug-discipline')?.value || '';
+    const s = document.getElementById('bug-severity')?.value || '';
+    const q = document.getElementById('bug-search')?.value || '';
+    let params = [];
+    if (d) params.push('discipline=' + encodeURIComponent(d));
+    if (s) params.push('severity=' + encodeURIComponent(s));
+    if (q) params.push('search=' + encodeURIComponent(q));
+    try {
+        const list = await api('/bugreports' + (params.length ? '?' + params.join('&') : ''));
+        const el = document.getElementById('bugs-list');
+        if (!list.length) {
+            el.innerHTML = '<div class="alert alert-secondary">Пока нет баг-репортов. Станьте первым — <a href="#" onclick="showPage(\'report-bug\')" class="alert-link">оформите находку</a>.</div>';
+            return;
+        }
+        el.innerHTML = list.map(r => `
+            <div class="card-mars p-3 rounded mb-3">
+                <div class="d-flex justify-content-between flex-wrap gap-2">
+                    <div>
+                        <span class="badge bg-secondary me-1">${r.discipline || '—'}</span>
+                        <span class="badge ${sevClass(r.severity)} me-1">${r.severity}</span>
+                        <span class="badge bg-dark">${r.priority}</span>
+                        <h5 class="mt-2 mb-1">#${r.id} ${escapeHtml(r.title)}</h5>
+                        <div class="small text-muted">${r.reporter || 'Аноним'} · ${new Date(r.created_at).toLocaleString('ru')} · ${r.status}</div>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBug(${r.id})" title="Удалить">×</button>
+                </div>
+                <div class="row mt-3 small">
+                    <div class="col-md-4"><strong>Шаги:</strong><pre class="mb-0 text-wrap">${escapeHtml(r.steps)}</pre></div>
+                    <div class="col-md-4"><strong>Ожидалось:</strong><pre class="mb-0 text-wrap">${escapeHtml(r.expected)}</pre></div>
+                    <div class="col-md-4"><strong>Фактически:</strong><pre class="mb-0 text-wrap">${escapeHtml(r.actual)}</pre></div>
+                </div>
+                ${r.environment ? `<div class="small text-muted mt-2">Окружение: ${escapeHtml(r.environment)}</div>` : ''}
+            </div>
+        `).join('');
+    } catch (e) {
+        document.getElementById('bugs-list').innerHTML = `<div class="alert alert-danger">${e.message}</div>`;
+    }
+}
+
+function sevClass(s) {
+    const m = { blocker: 'bg-danger', critical: 'bg-danger', major: 'bg-warning text-dark', minor: 'bg-info text-dark', trivial: 'bg-secondary' };
+    return m[(s || '').toLowerCase()] || 'bg-secondary';
+}
+
+function escapeHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderReportBug(app) {
+    app.innerHTML = `
+        <button class="btn btn-sm btn-outline-mars mb-3" onclick="showPage('bugs')">← К списку</button>
+        <div class="card-mars p-4 rounded">
+            <h3 class="mb-3">Оформить баг-репорт</h3>
+            <p class="text-muted small">Заполните все поля так, как на реальном проекте. Куратор оценит качество оформления.</p>
+            <form id="bug-form">
+                <div class="mb-3">
+                    <label class="form-label">Заголовок *</label>
+                    <input class="form-control" name="title" required minlength="5" placeholder="Кратко: что сломано и где">
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Дисциплина</label>
+                        <select class="form-select" name="discipline">
+                            <option>UI</option>
+                            <option>API</option>
+                            <option>SQL / данные</option>
+                            <option>Локализация</option>
+                            <option>Валидация</option>
+                            <option>Безопасность</option>
+                            <option>Адаптив / кроссбраузерность</option>
+                            <option>Прочее</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Severity *</label>
+                        <select class="form-select" name="severity">
+                            <option value="blocker">Blocker</option>
+                            <option value="critical">Critical</option>
+                            <option value="major" selected>Major</option>
+                            <option value="minor">Minor</option>
+                            <option value="trivial">Trivial</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" name="priority">
+                            <option value="high">High</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Шаги воспроизведения *</label>
+                    <textarea class="form-control" name="steps" rows="3" required minlength="5" placeholder="1. Открыть...&#10;2. Нажать...&#10;3. ..."></textarea>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Ожидаемый результат *</label>
+                        <textarea class="form-control" name="expected" rows="2" required></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Фактический результат *</label>
+                        <textarea class="form-control" name="actual" rows="2" required></textarea>
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Окружение</label>
+                        <input class="form-control" name="environment" placeholder="Chrome 128 / Windows 11 / iPhone Safari">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Автор (ник / ФИО)</label>
+                        <input class="form-control" name="reporter" placeholder="nova / Иван И.">
+                    </div>
+                </div>
+                <button class="btn btn-mars">Отправить баг-репорт</button>
+            </form>
+        </div>
+    `;
+    document.getElementById('bug-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        try {
+            await api('/bugreports', {
+                method: 'POST',
+                body: JSON.stringify({
+                    title: fd.get('title'),
+                    discipline: fd.get('discipline'),
+                    steps: fd.get('steps'),
+                    expected: fd.get('expected'),
+                    actual: fd.get('actual'),
+                    severity: fd.get('severity'),
+                    priority: fd.get('priority'),
+                    environment: fd.get('environment'),
+                    reporter: fd.get('reporter') || 'Аноним'
+                })
+            });
+            toast('Баг-репорт отправлен', 'success');
+            showPage('bugs');
+        } catch (err) {
+            toast(err.message, 'error');
+        }
+    };
+}
+
+async function deleteBug(id) {
+    if (!confirm('Удалить баг-репорт #' + id + '?')) return;
+    try {
+        await api('/bugreports/' + id, { method: 'DELETE' });
+        toast('Удалено', 'success');
+        loadBugs();
+    } catch (e) {
+        toast(e.message, 'error');
+    }
+}
+
+// ==================== GUIDE ====================
+function renderGuide(app) {
+    app.innerHTML = `
+        <h2 class="mb-3">Как тестировать AresMarket</h2>
+        <div class="card-mars p-4 rounded mb-4">
+            <p>Это учебный стенд для стажировки full-stack тестировщика. Приложение намеренно содержит дефекты.
+            Ваша задача — найти их, воспроизвести и <strong>оформить баг-репорты</strong> на странице
+            <a href="#" onclick="showPage('bugs')" class="link-warning">«Баг-репорты»</a>.</p>
+            <p class="mb-0">Не чините код — фиксируйте находки. Качество оформления репортов оценивается отдельно.</p>
+        </div>
+
+        <h4 class="mb-3">Дисциплины стенда</h4>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <div class="card-mars p-3 h-100">
+                    <h6>🖥 UI / ручное тестирование</h6>
+                    <ul class="small mb-0">
+                        <li>Каталог, карточки, фильтры, сортировка</li>
+                        <li>Корзина, оформление заказа</li>
+                        <li>Формы регистрации / входа</li>
+                        <li>Адаптив (mobile / desktop)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-mars p-3 h-100">
+                    <h6>🔌 API-тестирование</h6>
+                    <ul class="small mb-0">
+                        <li>Swagger: <a href="/api/docs" target="_blank" class="link-warning">/api/docs</a></li>
+                        <li>Продукты, корзина, заказы, баг-репорты</li>
+                        <li>Коды ответов, валидация, границы</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-mars p-3 h-100">
+                    <h6>🗄 SQL / данные</h6>
+                    <ul class="small mb-0">
+                        <li>SQLite: остатки, заказы, отзывы</li>
+                        <li>Целостность после оформления заказа</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card-mars p-3 h-100">
+                    <h6>🌐 Локализация</h6>
+                    <ul class="small mb-0">
+                        <li>Переключатель 🌐 в шапке</li>
+                        <li>RU / EN / <strong>Марсианский</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <h4 class="mb-3">Ключевые API</h4>
+        <div class="table-responsive mb-4">
+            <table class="table table-dark table-sm">
+                <thead><tr><th>Метод</th><th>Путь</th><th>Назначение</th></tr></thead>
+                <tbody>
+                    <tr><td>GET</td><td>/api/products</td><td>Каталог (?search, ?sort, ?min_price, ?max_price, ?category)</td></tr>
+                    <tr><td>GET</td><td>/api/products/{id}</td><td>Карточка товара</td></tr>
+                    <tr><td>POST</td><td>/api/cart/items</td><td>Добавить в корзину</td></tr>
+                    <tr><td>POST</td><td>/api/orders</td><td>Оформить заказ</td></tr>
+                    <tr><td>GET/POST</td><td>/api/locale/{lang}</td><td>Локаль (mars → 500)</td></tr>
+                    <tr><td>GET/POST</td><td>/api/bugreports</td><td>Список / создание баг-репортов</td></tr>
+                    <tr><td>POST</td><td>/api/auth/login</td><td>Вход (form-urlencoded)</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h4 class="mb-3">Что обязательно проверить</h4>
+        <ol>
+            <li>Сортировку «Цена ↑» и «Цена ↓»</li>
+            <li>Поиск (разный регистр, кириллица)</li>
+            <li>Границы количества в корзине и остаток на складе после заказа</li>
+            <li>Переключение локали на «Марсианский»</li>
+            <li>Оформление заказа с пустой / полной корзиной</li>
+            <li>API через Swagger или Postman</li>
+            <li>Регистрацию и вход</li>
+        </ol>
+        <p class="text-muted">Демо-аккаунты: <code>nova / nova123</code>, <code>admin / admin123</code></p>
+        <button class="btn btn-mars" onclick="showPage('report-bug')">Оформить первый баг-репорт</button>
+    `;
 }
 
 // ==================== AUTH ====================

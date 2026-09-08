@@ -125,3 +125,33 @@ class ReviewOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class BugReportCreate(BaseModel):
+    title: str = Field(..., min_length=5, max_length=200)
+    discipline: Optional[str] = "Не указана"
+    steps: str = Field(..., min_length=5)
+    expected: str = Field(..., min_length=3)
+    actual: str = Field(..., min_length=3)
+    severity: str = "medium"
+    priority: str = "medium"
+    environment: Optional[str] = ""
+    reporter: Optional[str] = "Аноним"
+
+
+class BugReportOut(BaseModel):
+    id: int
+    title: str
+    discipline: Optional[str]
+    steps: str
+    expected: str
+    actual: str
+    severity: str
+    priority: str
+    environment: Optional[str]
+    reporter: Optional[str]
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
