@@ -1,0 +1,179 @@
+:root {
+    --mars-red: #c1440e;
+    --mars-dark: #1a0f0a;
+    --mars-sand: #e8c39e;
+    --mars-dust: #8b5a2b;
+    --accent: #ff6b35;
+    --bg-deep: #0d0907;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #1a0f0a 0%, #2c1810 40%, #1a0f0a 100%);
+    color: #f5e6d3;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main { flex: 1; }
+
+.top-bar {
+    background: #0a0604;
+    color: #c9a87c;
+    font-size: 0.8rem;
+    border-bottom: 1px solid #3d2314;
+}
+
+.navbar {
+    background: linear-gradient(90deg, #2c1810, #3d2314) !important;
+    border-bottom: 2px solid var(--mars-red);
+}
+
+.navbar-brand {
+    letter-spacing: 0.5px;
+}
+.brand-icon { filter: drop-shadow(0 0 4px #ff4500); }
+
+.nav-link { color: #e8c39e !important; }
+.nav-link:hover { color: #fff !important; }
+
+/* Hero */
+.hero-mars {
+    background: radial-gradient(ellipse at center, #5c2e1a 0%, #1a0f0a 70%);
+    border: 1px solid #5c2e1a;
+    border-radius: 1rem;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+.hero-mars::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c1440e' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.5;
+}
+
+/* Product cards */
+.product-card {
+    background: #241610;
+    border: 1px solid #3d2314;
+    border-radius: 0.75rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    height: 100%;
+    overflow: hidden;
+}
+.product-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(193, 68, 14, 0.25);
+    border-color: var(--mars-red);
+}
+.product-emoji {
+    font-size: 3.5rem;
+    line-height: 1;
+    text-align: center;
+    padding: 1.25rem 0;
+    background: linear-gradient(180deg, #2c1810, #1a0f0a);
+}
+.price-sols {
+    color: #ffb347;
+    font-weight: 700;
+    font-size: 1.15rem;
+}
+.price-credits {
+    color: #8a8a8a;
+    font-size: 0.85rem;
+}
+
+/* Buttons */
+.btn-mars {
+    background: linear-gradient(135deg, #c1440e, #e85d04);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+}
+.btn-mars:hover {
+    background: linear-gradient(135deg, #e85d04, #ff6b35);
+    color: #fff;
+}
+.btn-outline-mars {
+    border: 1px solid var(--mars-red);
+    color: #ffb347;
+}
+.btn-outline-mars:hover {
+    background: var(--mars-red);
+    color: #fff;
+}
+
+/* Badges */
+.badge-featured {
+    background: linear-gradient(90deg, #ff6b35, #c1440e);
+}
+
+/* Cart badge */
+#cart-badge { font-size: 0.7rem; }
+
+/* Filters bar */
+.filters-bar {
+    background: #1a0f0a;
+    border: 1px solid #3d2314;
+    border-radius: 0.75rem;
+    padding: 1rem;
+}
+
+/* Forms */
+.form-control, .form-select {
+    background: #1a0f0a;
+    border-color: #3d2314;
+    color: #f5e6d3;
+}
+.form-control:focus, .form-select:focus {
+    background: #241610;
+    border-color: var(--mars-red);
+    color: #f5e6d3;
+    box-shadow: 0 0 0 0.2rem rgba(193, 68, 14, 0.25);
+}
+.form-control::placeholder { color: #8a6a4a; }
+
+/* Cards generic */
+.card-mars {
+    background: #241610;
+    border: 1px solid #3d2314;
+    color: #f5e6d3;
+}
+
+/* Footer */
+.footer {
+    background: #0a0604;
+    border-top: 1px solid #3d2314;
+    color: #8a6a4a;
+}
+
+/* Toast */
+.toast { background: #2c1810; color: #f5e6d3; }
+
+/* Intentional UI issues for students:
+   - Some long product names overflow without ellipsis on mobile
+   - Filter buttons have slightly inconsistent padding
+   - On very small screens the top-bar text can wrap awkwardly
+   - Color contrast on secondary text is intentionally medium
+*/
+.product-title {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    /* BUG: on some viewports the clamp is ignored due to missing line-height */
+}
+.filter-btn-inconsistent {
+    padding: 0.35rem 0.7rem; /* slightly different from btn-sm */
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+    .hero-mars { padding: 1.5rem 1rem; }
+    .product-emoji { font-size: 2.5rem; }
+    .top-bar { font-size: 0.7rem; }
+}

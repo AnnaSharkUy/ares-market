@@ -1,0 +1,13 @@
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.db
+*.sqlite3
+.idea/
+.vscode/
+.DS_Store
+.env
+*.log
+.pytest_cache/
+ares_market.db
