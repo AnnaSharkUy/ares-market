@@ -35,7 +35,7 @@
 
 ### 3.1. Через Python (локально)
 
-**Нужно:** Python 3.10+, браузер, терминал.
+**Нужно:** Python 3.10 - 3.13, браузер, терминал.
 
 ```bash
 git clone https://github.com/AnnaSharkUy/ares-market.git
@@ -43,6 +43,17 @@ cd ares-market
 
 python3 -m venv venv
 source venv/bin/activate          # Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+```powershell
+git clone https://github.com/AnnaSharkUy/ares-market.git
+cd ares-market
+
+python -m venv venv
+.\venv\Scripts\activate
+# в случае ошибки выполнить в терминале Администратора: Set-ExecutionPolicy RemoteSigned
 pip install -r requirements.txt
 uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
@@ -150,7 +161,7 @@ PORT=8001 docker compose up --build
 
 | Симптом | Действие |
 |---------|----------|
-| Нет `python3` | Установить Python 3, переоткрыть терминал |
+| Нет `python3` | Установить Python, переоткрыть терминал |
 | Порт занят | `--port 8001` или `PORT=8001 docker compose up` |
 | Нет Docker | Использовать вариант с Python |
 | «Грязные» данные | Python: удалить `ares_market.db` и перезапустить; Docker: `docker compose down -v` (сотрёт volume) |
