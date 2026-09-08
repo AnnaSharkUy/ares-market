@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Query, Response
+from fastapi import FastAPI, Depends, HTTPException, status, Query, Response, File, UploadFile, Form
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -8,6 +8,8 @@ from typing import List, Optional
 from datetime import datetime
 import os
 import random
+import uuid
+import shutil
 
 from .database import engine, get_db, Base
 from . import models, schemas, auth
@@ -147,23 +149,61 @@ def me(current_user: models.User = Depends(auth.get_current_active_user)):
     return current_user
 
 
-# ==================== LOCALE (INTENTIONAL 500) ====================
+# ==================== LOCALE ====================
+# Martian locale is "conditionally working": returns 200 + broken strings
+# (truncated labels, wrong placeholders). Legacy path /api/locale/mars/crash → 500.
+
+MARTIAN_STRINGS = {
+    "nav_home": "Главн",  # truncated
+    "nav_catalog": "Катал",
+    "nav_cart": "Корзин",
+    "nav_orders": "Заказ",
+    "nav_bugs": "Баг-реп",
+    "nav_guide": "Как тест",
+    "nav_feedback": "Обратн связь",
+    "search_placeholder": "Type product name here...",  # wrong language placeholder
+    "add_to_cart": "В корз",
+    "price_label": "Цена от",
+    "checkout": "Оформит заказ",
+    "login": "Вхо",
+    "register": "Регистр",
+    "hero_title": "AresMarket — колония",
+    "hero_subtitle": "Всё для жизни на Красной планете...",
+    "empty_cart": "Корзина пуст",
+    "feedback_name": "Your full name",  # wrong locale
+    "feedback_email": "email@example.com",
+    "feedback_message": "Опишите проблему кратко...",  # truncated hint
+    "footer": "AresMarket © 2019",  # outdated year remains
+}
+
+
 @app.get("/api/locale/{lang}", tags=["Locale"])
 def switch_locale(lang: str):
     """
-    Переключение локали.
-    Earth locales: ru, en
-    Martian: mars / mrt / arean
+    Locale switch.
+    Earth: ru, en — full OK.
+    Martian: mars / mrt / arean — HTTP 200 with incomplete/wrong UI strings (subtle bugs).
     """
-    if lang.lower() in ("mars", "mrt", "arean", "martian"):
-        # INTENTIONAL BUG: Martian locale always returns 500
-        raise HTTPException(
-            status_code=500,
-            detail="Internal Server Error: Martian localization service unavailable. Core dump in sector 7G.",
-        )
-    if lang.lower() in ("ru", "en", "earth"):
-        return {"locale": lang.lower(), "status": "ok", "message": f"Locale set to {lang}"}
+    code = lang.lower()
+    if code in ("mars", "mrt", "arean", "martian"):
+        return {
+            "locale": "mars",
+            "status": "partial",
+            "message": "Martian locale loaded with limited dictionary",
+            "strings": MARTIAN_STRINGS,
+        }
+    if code in ("ru", "en", "earth"):
+        return {"locale": code if code != "earth" else "ru", "status": "ok", "message": f"Locale set to {lang}", "strings": {}}
     raise HTTPException(status_code=400, detail="Unsupported locale")
+
+
+@app.get("/api/locale/mars/crash", tags=["Locale"])
+def locale_mars_crash():
+    """Legacy endpoint kept for API explorers — still returns 500 (intentional)."""
+    raise HTTPException(
+        status_code=500,
+        detail="Internal Server Error: Martian localization core dump in sector 7G.",
+    )
 
 
 # ==================== CATEGORIES ====================
@@ -468,6 +508,88 @@ def delete_bug_report(report_id: int, db: Session = Depends(get_db)):
 
 
 # ==================== STATS / SEARCH HELPERS ====================
+# ==================== FEEDBACK (with attachment traps) ====================
+UPLOAD_DIR = os.environ.get("ARES_UPLOAD_DIR", os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads"))
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+# Documented allowed types for students (UI text). Actual checks are intentionally inconsistent.
+ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".gif", ".txt", ".doc", ".docx", ".csv", ".xlsx"}
+# BUG: .exe and .zip not in public list but not blocked by extension check below in some paths
+MAX_FILES_DOCUMENTED = 3
+MAX_SIZE_MB_DOCUMENTED = 5
+
+
+@app.post("/api/feedback", response_model=schemas.FeedbackOut, status_code=201, tags=["Feedback"])
+async def create_feedback(
+    name: str = Form(...),
+    email: str = Form(...),
+    category: str = Form("general"),
+    subject: str = Form(...),
+    message: str = Form(...),
+    rating: int = Form(0),
+    files: List[UploadFile] = File(default=[]),
+    db: Session = Depends(get_db),
+    current_user: Optional[models.User] = Depends(auth.get_optional_user),
+):
+    """
+    Feedback form with file attachments.
+    Guests and authenticated users may submit.
+    Intentional traps for QA practice (size, type, count, validation).
+    """
+    # BUG: email format not validated on server (only non-empty via Form)
+    # BUG: rating can be 0 or >5 without 422
+    if rating < 0:
+        rating = 0  # silent clamp instead of error
+
+    saved_names = []
+    file_list = files or []
+    # BUG: documented max 3 files; code allows 4 (off-by-one)
+    if len(file_list) > MAX_FILES_DOCUMENTED + 1:
+        raise HTTPException(status_code=400, detail=f"Too many files (max {MAX_FILES_DOCUMENTED})")
+
+    for f in file_list:
+        if not f or not f.filename:
+            continue
+        ext = os.path.splitext(f.filename)[1].lower()
+        # BUG: only extension checked, not content-type; .pdf.exe style double extensions slip
+        # BUG: empty extension allowed
+        content = await f.read()
+        size_mb = len(content) / (1024 * 1024)
+        # BUG: documented 5MB limit, actual check uses 15MB
+        if size_mb > 15:
+            raise HTTPException(status_code=400, detail="File too large")
+        # BUG: no reject for disallowed extensions — only warning path missing
+        safe_name = f"{uuid.uuid4().hex[:10]}_{f.filename.replace(' ', '_')}"
+        path = os.path.join(UPLOAD_DIR, safe_name)
+        with open(path, "wb") as out:
+            out.write(content)
+        saved_names.append(safe_name)
+
+    fb = models.Feedback(
+        user_id=current_user.id if current_user else None,
+        name=name,
+        email=email,
+        category=category or "general",
+        subject=subject,
+        message=message,  # stored as-is — XSS risk if rendered unescaped
+        rating=rating,
+        attachments=",".join(saved_names),
+    )
+    db.add(fb)
+    db.commit()
+    db.refresh(fb)
+    return fb
+
+
+@app.get("/api/feedback", response_model=List[schemas.FeedbackOut], tags=["Feedback"])
+def list_feedback(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_active_user),
+):
+    # Only admin should see all — BUG: any authenticated user can list all feedback
+    return db.query(models.Feedback).order_by(models.Feedback.created_at.desc()).all()
+
+
 @app.get("/api/stats", tags=["Misc"])
 def stats(db: Session = Depends(get_db)):
     return {
@@ -475,7 +597,9 @@ def stats(db: Session = Depends(get_db)):
         "categories": db.query(models.Category).count(),
         "users": db.query(models.User).count(),
         "bug_reports": db.query(models.BugReport).count(),
+        "feedback": db.query(models.Feedback).count(),
         "currency": "Sols (Ṡ)",
+        "roles": ["guest", "colonist", "admin"],
         "colony_network": ["Olympus City", "Valles Base", "Phobos Dock", "Hellas Outpost"],
     }
 

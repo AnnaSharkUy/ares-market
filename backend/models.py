@@ -123,3 +123,20 @@ class BugReport(Base):
     reporter = Column(String(80), default="Аноним")
     status = Column(String(30), default="new")  # new, confirmed, fixed, rejected
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class Feedback(Base):
+    """Форма обратной связи с вложениями (учебный модуль с ловушками)."""
+    __tablename__ = "feedback"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # guest allowed
+    name = Column(String(120), nullable=False)
+    email = Column(String(120), nullable=False)
+    category = Column(String(60), default="general")  # general, bug, idea, complaint
+    subject = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    rating = Column(Integer, default=0)  # 1-5 optional
+    # JSON-ish list of saved filenames (comma-separated for SQLite simplicity)
+    attachments = Column(Text, default="")
+    status = Column(String(30), default="new")
+    created_at = Column(DateTime, default=datetime.utcnow)

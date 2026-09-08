@@ -1,0 +1,16 @@
+services:
+  ares-market:
+    build: .
+    image: ares-market:latest
+    container_name: ares-market
+    ports:
+      - "${PORT:-8000}:8000"
+    environment:
+      ARES_DB_PATH: /data/ares_market.db
+      ARES_UPLOAD_DIR: /data/uploads
+    volumes:
+      - ares-data:/data
+    restart: unless-stopped
+
+volumes:
+  ares-data:

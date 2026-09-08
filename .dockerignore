@@ -1,0 +1,12 @@
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.db
+.git/
+.github/
+uploads/
+*.md
+!README.md
+.env
+.DS_Store

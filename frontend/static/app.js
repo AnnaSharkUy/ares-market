@@ -77,22 +77,69 @@ function logout(show = true) {
 }
 
 // ==================== LOCALE (INTENTIONAL 500) ====================
+let localeStrings = {};
+
 async function setLocale(lang) {
     try {
         const res = await fetch(API + '/locale/' + lang);
         if (!res.ok) {
             const data = await res.json().catch(() => ({}));
-            // Show the 500 error clearly so students can report it
             toast(`Ошибка локали (${res.status}): ${data.detail || res.statusText}`, 'error');
             console.error('Locale switch failed', res.status, data);
             return;
         }
         const data = await res.json();
-        document.getElementById('current-locale').textContent = lang.toUpperCase();
-        toast(`Локаль: ${data.message}`, 'success');
+        document.getElementById('current-locale').textContent = (data.locale || lang).toUpperCase();
+        localeStrings = data.strings || {};
+        applyLocaleStrings();
+        toast(`Локаль: ${data.message}`, data.status === 'partial' ? 'warning' : 'success');
     } catch (e) {
         toast('Сетевая ошибка при смене локали: ' + e.message, 'error');
     }
+}
+
+function applyLocaleStrings() {
+    // Apply partial Martian dictionary to nav (truncated / wrong strings = intentional subtle bugs)
+    const map = [
+        ['a[onclick*="showPage(\'home\')"]', 'nav_home'],
+        ['a[onclick*="showPage(\'catalog\')"]', 'nav_catalog'],
+        ['a[onclick*="showPage(\'cart\')"]', 'nav_cart'],
+        ['a[onclick*="showPage(\'orders\')"]', 'nav_orders'],
+        ['a[onclick*="showPage(\'bugs\')"]', 'nav_bugs'],
+        ['a[onclick*="showPage(\'guide\')"]', 'nav_guide'],
+        ['a[onclick*="showPage(\'feedback\')"]', 'nav_feedback'],
+    ];
+    if (!localeStrings || !Object.keys(localeStrings).length) {
+        // reset to Russian defaults
+        const defaults = {
+            nav_home: 'Главная', nav_catalog: 'Каталог', nav_cart: 'Корзина',
+            nav_orders: 'Заказы', nav_bugs: 'Баг-репорты', nav_guide: 'Как тестировать',
+            nav_feedback: 'Обратная связь'
+        };
+        map.forEach(([sel, key]) => {
+            const el = document.querySelector(sel);
+            if (el && defaults[key]) {
+                if (key === 'nav_cart') {
+                    const badge = el.querySelector('#cart-badge');
+                    el.childNodes[0].textContent = defaults[key] + ' ';
+                    if (badge) el.appendChild(badge);
+                } else el.textContent = defaults[key];
+            }
+        });
+        return;
+    }
+    map.forEach(([sel, key]) => {
+        const el = document.querySelector(sel);
+        if (el && localeStrings[key]) {
+            if (key === 'nav_cart') {
+                const badge = el.querySelector('#cart-badge');
+                el.childNodes[0].textContent = localeStrings[key] + ' ';
+                if (badge) el.appendChild(badge);
+            } else {
+                el.textContent = localeStrings[key];
+            }
+        }
+    });
 }
 
 // ==================== PAGES ====================
@@ -109,6 +156,7 @@ function showPage(page, param) {
         case 'bugs': renderBugs(app); break;
         case 'report-bug': renderReportBug(app); break;
         case 'guide': renderGuide(app); break;
+        case 'feedback': renderFeedback(app); break;
         case 'login': renderLogin(app); break;
         case 'register': renderRegister(app); break;
         default: renderHome(app);
@@ -664,6 +712,97 @@ async function deleteBug(id) {
     } catch (e) {
         toast(e.message, 'error');
     }
+}
+
+// ==================== FEEDBACK ====================
+function renderFeedback(app) {
+    const phName = localeStrings.feedback_name || 'Имя / позывной';
+    const phEmail = localeStrings.feedback_email || 'email@colony.mars';
+    const phMsg = localeStrings.feedback_message || 'Опишите предложение или проблему подробно';
+    app.innerHTML = `
+        <h2 class="mb-3">Обратная связь</h2>
+        <p class="text-muted">Гость и зарегистрированный колонист могут отправить сообщение. Можно прикрепить документы (PDF, изображения, Office, CSV…).</p>
+        <div class="card-mars p-4 rounded">
+            <form id="feedback-form">
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Имя *</label>
+                        <input class="form-control" name="name" required placeholder="${phName}">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Email *</label>
+                        <input class="form-control" name="email" required placeholder="${phEmail}">
+                        <!-- BUG: type="text" instead of email — weak client validation -->
+                    </div>
+                </div>
+                <div class="row g-2 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Категория</label>
+                        <select class="form-select" name="category">
+                            <option value="general">Общее</option>
+                            <option value="bug">Сообщение об ошибке</option>
+                            <option value="idea">Идея</option>
+                            <option value="complaint">Жалоба</option>
+                            <!-- BUG: category "urgent" documented in guide text but missing in dropdown -->
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Оценка сервиса (1–5)</label>
+                        <input type="number" class="form-control" name="rating" min="0" max="10" value="0">
+                        <!-- BUG: max=10 while label says 1–5 -->
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Тема *</label>
+                    <input class="form-control" name="subject" required minlength="3">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Сообщение *</label>
+                    <textarea class="form-control" name="message" rows="4" required placeholder="${phMsg}"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Вложения</label>
+                    <input type="file" class="form-control" name="files" multiple
+                           accept=".pdf,.png,.jpg,.jpeg,.gif,.txt,.doc,.docx,.csv,.xlsx">
+                    <div class="form-text">До 3 файлов, до 5 МБ каждый. PDF, изображения, DOC/DOCX, CSV, XLSX, TXT.</div>
+                </div>
+                <button class="btn btn-mars" type="submit">Отправить</button>
+            </form>
+        </div>
+        <div id="feedback-result" class="mt-3"></div>
+    `;
+    document.getElementById('feedback-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const fileInput = e.target.querySelector('input[name="files"]');
+        const body = new FormData();
+        body.append('name', fd.get('name'));
+        body.append('email', fd.get('email'));
+        body.append('category', fd.get('category'));
+        body.append('subject', fd.get('subject'));
+        body.append('message', fd.get('message'));
+        body.append('rating', fd.get('rating') || '0');
+        if (fileInput && fileInput.files) {
+            for (const f of fileInput.files) body.append('files', f);
+        }
+        try {
+            const headers = {};
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            // do not set Content-Type — browser sets multipart boundary
+            const res = await fetch(API + '/feedback', { method: 'POST', headers, body });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.detail || res.statusText);
+            document.getElementById('feedback-result').innerHTML =
+                `<div class="alert alert-success">Отправлено (#${data.id}). Вложений: ${(data.attachments || '').split(',').filter(Boolean).length}</div>`;
+            // BUG: message HTML not escaped if later listed — stored raw
+            toast('Обратная связь отправлена', 'success');
+            e.target.reset();
+        } catch (err) {
+            toast(err.message, 'error');
+            document.getElementById('feedback-result').innerHTML =
+                `<div class="alert alert-danger">${err.message}</div>`;
+        }
+    };
 }
 
 // ==================== GUIDE ====================

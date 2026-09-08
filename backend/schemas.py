@@ -155,3 +155,19 @@ class BugReportOut(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class FeedbackOut(BaseModel):
+    id: int
+    name: str
+    email: str
+    category: str
+    subject: str
+    message: str
+    rating: int
+    attachments: Optional[str]
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
