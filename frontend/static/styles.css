@@ -1,47 +1,53 @@
 :root {
-    --mars-red: #c1440e;
-    --mars-dark: #1a0f0a;
-    --mars-sand: #e8c39e;
-    --mars-dust: #8b5a2b;
-    --accent: #ff6b35;
-    --bg-deep: #0d0907;
+    --mars-red: #0d9488;      /* teal accent (kept var name for compatibility) */
+    --mars-dark: #0a0f14;
+    --mars-sand: #a5f3fc;     /* light cyan text accent */
+    --mars-dust: #334155;
+    --accent: #22d3ee;        /* turquoise */
+    --accent-deep: #0891b2;   /* cyan-700 */
+    --bg-deep: #05080c;
+    --bg-panel: #0f172a;
+    --bg-card: #111827;
+    --border: #1e3a4c;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
 }
 
 body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #1a0f0a 0%, #2c1810 40%, #1a0f0a 100%);
-    color: #f5e6d3;
+    background: linear-gradient(180deg, #05080c 0%, #0a1628 35%, #0c1a22 70%, #05080c 100%);
+    color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 main { flex: 1; }
 
 .top-bar {
-    background: #0a0604;
-    color: #c9a87c;
+    background: #030712;
+    color: #67e8f9;
     font-size: 0.8rem;
-    border-bottom: 1px solid #3d2314;
+    border-bottom: 1px solid var(--border);
 }
 
 .navbar {
-    background: linear-gradient(90deg, #2c1810, #3d2314) !important;
-    border-bottom: 2px solid var(--mars-red);
+    background: linear-gradient(90deg, #0a1628, #0f2744) !important;
+    border-bottom: 2px solid var(--accent-deep);
 }
 
 .navbar-brand {
     letter-spacing: 0.5px;
 }
-.brand-icon { filter: drop-shadow(0 0 4px #ff4500); }
+.brand-icon { filter: drop-shadow(0 0 6px #22d3ee); }
 
-.nav-link { color: #e8c39e !important; }
+.nav-link { color: #a5f3fc !important; }
 .nav-link:hover { color: #fff !important; }
 
 /* Hero */
 .hero-mars {
-    background: radial-gradient(ellipse at center, #5c2e1a 0%, #1a0f0a 70%);
-    border: 1px solid #5c2e1a;
+    background: radial-gradient(ellipse at center, #0e7490 0%, #0a1628 45%, #05080c 75%);
+    border: 1px solid #155e75;
     border-radius: 1rem;
     padding: 2.5rem 1.5rem;
     text-align: center;
@@ -52,64 +58,66 @@ main { flex: 1; }
     content: "";
     position: absolute;
     inset: 0;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23c1440e' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.5;
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2322d3ee' fill-opacity='0.07'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    opacity: 0.6;
 }
 
 /* Product cards */
 .product-card {
-    background: #241610;
-    border: 1px solid #3d2314;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 0.75rem;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
     height: 100%;
     overflow: hidden;
 }
 .product-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(193, 68, 14, 0.25);
-    border-color: var(--mars-red);
+    box-shadow: 0 8px 28px rgba(34, 211, 238, 0.18);
+    border-color: var(--accent);
 }
 .product-emoji {
     font-size: 3.5rem;
     line-height: 1;
     text-align: center;
     padding: 1.25rem 0;
-    background: linear-gradient(180deg, #2c1810, #1a0f0a);
+    background: linear-gradient(180deg, #0f2744, #0a1628);
 }
 .price-sols {
-    color: #ffb347;
+    color: #22d3ee;
     font-weight: 700;
     font-size: 1.15rem;
 }
 .price-credits {
-    color: #8a8a8a;
+    color: var(--text-muted);
     font-size: 0.85rem;
 }
 
 /* Buttons */
 .btn-mars {
-    background: linear-gradient(135deg, #c1440e, #e85d04);
+    background: linear-gradient(135deg, #0e7490, #22d3ee);
     border: none;
-    color: #fff;
+    color: #041016;
     font-weight: 600;
 }
 .btn-mars:hover {
-    background: linear-gradient(135deg, #e85d04, #ff6b35);
-    color: #fff;
+    background: linear-gradient(135deg, #22d3ee, #67e8f9);
+    color: #041016;
 }
 .btn-outline-mars {
-    border: 1px solid var(--mars-red);
-    color: #ffb347;
+    border: 1px solid var(--accent);
+    color: #67e8f9;
 }
 .btn-outline-mars:hover {
-    background: var(--mars-red);
+    background: rgba(34, 211, 238, 0.15);
     color: #fff;
+    border-color: #67e8f9;
 }
 
 /* Badges */
 .badge-featured {
-    background: linear-gradient(90deg, #ff6b35, #c1440e);
+    background: linear-gradient(90deg, #0891b2, #22d3ee);
+    color: #041016;
 }
 
 /* Cart badge */
@@ -117,42 +125,50 @@ main { flex: 1; }
 
 /* Filters bar */
 .filters-bar {
-    background: #1a0f0a;
-    border: 1px solid #3d2314;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
     border-radius: 0.75rem;
     padding: 1rem;
 }
 
 /* Forms */
 .form-control, .form-select {
-    background: #1a0f0a;
-    border-color: #3d2314;
-    color: #f5e6d3;
+    background: #0a1628;
+    border-color: var(--border);
+    color: var(--text);
 }
 .form-control:focus, .form-select:focus {
-    background: #241610;
-    border-color: var(--mars-red);
-    color: #f5e6d3;
-    box-shadow: 0 0 0 0.2rem rgba(193, 68, 14, 0.25);
+    background: #0f2744;
+    border-color: var(--accent);
+    color: var(--text);
+    box-shadow: 0 0 0 0.2rem rgba(34, 211, 238, 0.2);
 }
-.form-control::placeholder { color: #8a6a4a; }
+.form-control::placeholder { color: #64748b; }
 
 /* Cards generic */
 .card-mars {
-    background: #241610;
-    border: 1px solid #3d2314;
-    color: #f5e6d3;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--text);
 }
 
 /* Footer */
 .footer {
-    background: #0a0604;
-    border-top: 1px solid #3d2314;
-    color: #8a6a4a;
+    background: #030712;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
 }
 
 /* Toast */
-.toast { background: #2c1810; color: #f5e6d3; }
+.toast { background: #0f2744; color: var(--text); }
+
+/* Tables in dark theme */
+.table-dark {
+    --bs-table-bg: #0f172a;
+    --bs-table-border-color: #1e3a4c;
+    --bs-table-striped-bg: #111827;
+    --bs-table-hover-bg: #0f2744;
+}
 
 /* Intentional UI issues for students:
    - Some long product names overflow without ellipsis on mobile
